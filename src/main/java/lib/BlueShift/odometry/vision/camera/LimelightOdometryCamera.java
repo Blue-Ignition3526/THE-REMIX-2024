@@ -53,7 +53,7 @@ public class LimelightOdometryCamera implements OdometryCamera {
     }
 
     @Override
-    public Optional<VisionOdometryPoseEstimate> getEstimate() {
+    public synchronized Optional<VisionOdometryPoseEstimate> getEstimate() {
         if (!m_enabled) return Optional.empty();
         LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(m_cameraName);
         if (poseEstimate == null || poseEstimate.tagCount < 1) return Optional.empty();

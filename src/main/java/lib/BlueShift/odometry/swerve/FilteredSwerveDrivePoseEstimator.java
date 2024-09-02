@@ -7,11 +7,14 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import lib.BlueShift.odometry.EstimatedPositionProvider;
 import lib.BlueShift.odometry.vision.OdometryCamera;
@@ -25,6 +28,8 @@ public class FilteredSwerveDrivePoseEstimator extends SubsystemBase implements E
 
   private final OdometryCamera[] cameras;
   private final SwerveDrivePoseEstimator estimator;
+
+  private final Field2d field = new Field2d();
 
   public FilteredSwerveDrivePoseEstimator(
     SwerveDriveKinematics kinematics,
@@ -63,30 +68,51 @@ public class FilteredSwerveDrivePoseEstimator extends SubsystemBase implements E
     visionEnabled = false;
   }
 
-  public Pose2d getEstimatedPosition() {
+  public synchronized Pose2d getEstimatedPosition() {
     return estimator.getEstimatedPosition();
   }
 
-  public Rotation2d getEstimatedHeading() {
+  public synchronized Rotation2d getEstimatedHeading() {
     return estimator.getEstimatedPosition().getRotation();
   }
 
-  public void resetPosition(Rotation2d heading, SwerveModulePosition[] modulePositions, Pose2d pose) {
+  public synchronized void resetPosition(Rotation2d heading, SwerveModulePosition[] modulePositions, Pose2d pose) {
     estimator.resetPosition(heading, modulePositions, pose);
   }
 
-  @Override
-  public void periodic() {
-    estimator.updateWithTime(RobotController.getFPGATime() / 1e+6, headingSupplier.get(), modulePositionsSupplier.get());
+  public synchronized void setvisionPose() {
+    Pose2d pose = new Pose2d();
+    for (int i = 0; i < cameras.length; i++) {
+      OdometryCamera camera = cameras[i];
+      if (!camera.isEnabled()) continue;
+      // Set the heading of the robot if it is a LimelightOdometryCamera
+      if (camera instanceof LimelightOdometryCamera) ((LimelightOdometryCamera)camera).setHeading(this.getEstimatedHeading().getDegrees());
+      Optional<VisionOdometryPoseEstimate> estimate = camera.getEstimate();
+      if (estimate.isEmpty()) continue;
+      pose.plus(new Transform2d(pose.getTranslation(), pose.getRotation()));
+    }
+    pose.div(cameras.length);
+    estimator.resetPosition(headingSupplier.get(), modulePositionsSupplier.get(), pose);
+  }
 
+  public synchronized void update() {
+    estimator.updateWithTime(RobotController.getFPGATime() / 1e+6, headingSupplier.get(), modulePositionsSupplier.get());
+  
     if (!visionEnabled) return;
     for (var camera : cameras) {
       if (!camera.isEnabled()) continue;
-      // Set the heading of the camera if it is a LimelightOdometryCamera
+      // Set the heading of the robot if it is a LimelightOdometryCamera
       if (camera instanceof LimelightOdometryCamera) ((LimelightOdometryCamera)camera).setHeading(this.getEstimatedHeading().getDegrees());
       Optional<VisionOdometryPoseEstimate> estimate = camera.getEstimate();
       if (estimate.isEmpty()) continue;
       estimator.addVisionMeasurement(estimate.get().pose, estimate.get().timestamp, estimate.get().stdDev);
     }
+  } 
+
+  @Override
+  public void periodic() {
+    update();
+    field.setRobotPose(getEstimatedPosition());
+    SmartDashboard.putData("Field", field);
   }
 }

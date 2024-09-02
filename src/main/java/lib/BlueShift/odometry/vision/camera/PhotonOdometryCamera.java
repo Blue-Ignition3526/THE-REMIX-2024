@@ -66,7 +66,7 @@ public class PhotonOdometryCamera implements OdometryCamera {
     }
 
     @Override
-    public Optional<VisionOdometryPoseEstimate> getEstimate() {
+    public synchronized Optional<VisionOdometryPoseEstimate> getEstimate() {
         if (!m_enabled) return Optional.empty();
         m_poseEstimator.setReferencePose(m_last_pose);
         Optional<EstimatedRobotPose> estimatedPose = m_poseEstimator.update();
