@@ -1,11 +1,16 @@
 package frc.robot.commands.SwerveDrive;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Second;
 
 import java.util.function.Supplier;
-
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveDrive;
@@ -14,15 +19,23 @@ import lib.BlueShift.utils.JoystickUtils;
 public class DriveSwerve extends Command {
   SwerveDrive swerveDrive;
 
-  SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAcceleration.magnitude());
-  SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAcceleration.magnitude());
-  SlewRateLimiter rotLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAngularAcceleration.magnitude());
+  SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAcceleration.in(MetersPerSecondPerSecond));
+  SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAcceleration.in(MetersPerSecondPerSecond));
+  SlewRateLimiter rotLimiter = new SlewRateLimiter(Constants.SwerveDrive.PhysicalModel.kMaxAngularAcceleration.in(RadiansPerSecond.per(Second)));
+
+  TrapezoidProfile.Constraints headingConstraints = new TrapezoidProfile.Constraints(
+    Constants.SwerveDrive.PhysicalModel.kMaxAngularSpeed.in(RadiansPerSecond) / 4,
+    Constants.SwerveDrive.PhysicalModel.kMaxAngularAcceleration.in(RadiansPerSecond.per(Second)) / 4
+  );
+  ProfiledPIDController headingController = new ProfiledPIDController(0.05, 0, 0, headingConstraints);
 
   Supplier<Double> xSpeed;
   Supplier<Double> ySpeed;
   Supplier<Double> rotSpeed;
   Supplier<Boolean> fieldRelative;
   Supplier<Boolean> trackingSpeaker;
+
+  double lastHeading = 0;
   
   public DriveSwerve(
     SwerveDrive swerveDrive,
@@ -38,6 +51,11 @@ public class DriveSwerve extends Command {
     this.rotSpeed = rotSpeed;
     this.fieldRelative = fieldRelative;
     this.trackingSpeaker = trackingSpeaker;
+
+    // headingController.enableContinuousInput(0, 2 * Math.PI);
+    headingController.setTolerance(Constants.SwerveDrive.kHeadingTolerance.in(Radians));
+    SmartDashboard.putData("HeadingController", headingController);
+
     addRequirements(swerveDrive);
   }
 
@@ -55,6 +73,13 @@ public class DriveSwerve extends Command {
     x = JoystickUtils.applyDeadbband(x, Constants.SwerveDrive.kJoystickDeadband);
     y = JoystickUtils.applyDeadbband(y, Constants.SwerveDrive.kJoystickDeadband);
     rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
+
+    // if (rot == 0) {
+    //   rot = headingController.calculate(swerveDrive.getHeading().getRadians(), lastHeading);
+    //   rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
+    // } else {
+    //   lastHeading = swerveDrive.getHeading().getRadians();
+    // }
     
     x = xLimiter.calculate(x);
     y = yLimiter.calculate(y);

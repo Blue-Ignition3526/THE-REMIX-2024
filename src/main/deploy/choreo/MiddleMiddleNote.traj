@@ -169,5 +169,15 @@
       "timestamp": 0.6975074393040628
     }
   ],
-  "eventMarkers": []
+  "eventMarkers": [
+    {
+      "timestamp": 0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "PickupPiece"
+        }
+      }
+    }
+  ]
 }

@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -76,8 +75,8 @@ public class FilteredSwerveDrivePoseEstimator extends SubsystemBase implements E
     return estimator.getEstimatedPosition().getRotation();
   }
 
-  public synchronized void resetPosition(Rotation2d heading, SwerveModulePosition[] modulePositions, Pose2d pose) {
-    estimator.resetPosition(heading, modulePositions, pose);
+  public synchronized void resetPosition(Pose2d pose) {
+    estimator.resetPosition(headingSupplier.get(), modulePositionsSupplier.get(), pose);
   }
 
   public synchronized void setvisionPose() {
@@ -96,7 +95,7 @@ public class FilteredSwerveDrivePoseEstimator extends SubsystemBase implements E
   }
 
   public synchronized void update() {
-    estimator.updateWithTime(RobotController.getFPGATime() / 1e+6, headingSupplier.get(), modulePositionsSupplier.get());
+    estimator.update(headingSupplier.get(), modulePositionsSupplier.get());
   
     if (!visionEnabled) return;
     for (var camera : cameras) {

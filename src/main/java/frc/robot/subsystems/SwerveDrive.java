@@ -93,9 +93,9 @@ public class SwerveDrive extends SubsystemBase {
      * Get the current pose of the robot
      * @return
      */
-    public Pose2d getPose() {
-        return odometry.getEstimatedPosition();
-    }
+    // public Pose2d getPose() {
+    //     return odometry.getEstimatedPosition();
+    // }
 
     /**
      * Reset the pose of the robot to (0, 0)
@@ -271,7 +271,7 @@ public class SwerveDrive extends SubsystemBase {
 
     public void periodic() {
         // Update the field
-        m_field.setRobotPose(this.getPose());
+        // m_field.setRobotPose(this.getPose());
 
         // Log data
         SmartDashboard.putData("SwerveDrive/Field", this.m_field);

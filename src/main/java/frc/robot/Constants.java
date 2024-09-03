@@ -4,8 +4,9 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.Angle;
@@ -31,6 +32,9 @@ public final class Constants {
         // * Controller
         public static final double kJoystickDeadband = 0.1;
 
+        // * Heading Controller
+        public static final Measure<Angle> kHeadingTolerance = Degrees.of(3);
+
         // * Physical model of the robot
         public static final class PhysicalModel {
             // * MAX DISPLACEMENT SPEED (and acceleration)
@@ -39,7 +43,7 @@ public final class Constants {
 
             // * MAX ROTATIONAL SPEED (and acceleration)
             public static final Measure<Velocity<Angle>> kMaxAngularSpeed = RotationsPerSecond.of(1);
-            public static final Measure<Velocity<Velocity<Angle>>> kMaxAngularAcceleration = RotationsPerSecond.per(Second).of(kMaxAngularSpeed.in(RotationsPerSecond));
+            public static final Measure<Velocity<Velocity<Angle>>> kMaxAngularAcceleration = RotationsPerSecond.per(Second).of(Math.pow(kMaxAngularSpeed.in(RotationsPerSecond), 2));
 
             // * Drive wheel diameter
             public static final Measure<Distance> kWheelDiameter = Inches.of(4);
@@ -153,12 +157,12 @@ public final class Constants {
 
         public static final class Arducam_Left {
             public static final String kName = "Arducam_Left";
-            public static final Translation3d kRobotToCamera = new Translation3d(-0.61, 0d, 0.6);
+            public static final Transform3d kRobotToCamera = new Transform3d(-0.61d, 0d, 0.6d, new Rotation3d(0, 0, 5d));
         }
 
         public static final class Arducam_Right {
             public static final String kName = "Arducam_Right";
-            public static final Translation3d kRobotToCamera = new Translation3d(0.61, 0d, 0.6);
+            public static final Transform3d kRobotToCamera = new Transform3d(0.61d, 0d, 0.6d, new Rotation3d(0, 0, -5d));
         }
     }
 
@@ -190,8 +194,8 @@ public final class Constants {
             public static final int kLifterMotorID = 37;
 
             // * Speeds
-            public static final double kMaxLifterSpeed = 0.5;
-            public static final double kMinLifterSpeed =  -kMaxLifterSpeed;
+            public static final double kMaxLifterVoltage = 7;
+            public static final double kMinLifterSpeed =  -kMaxLifterVoltage;
     
             // * Lifter encoder 
             public static final int kLifterEncoderPort = 0;
@@ -199,15 +203,14 @@ public final class Constants {
 
             public static final class PhysicalModel {
                 // * Motion
-                public static final ArmFeedforward kLifterFeedforward = new ArmFeedforward(0.0, 0, 0.0);
-                public static final Constraints kLifterConstraints = new Constraints(42, 38);
-                public static final ProfiledPIDController kLifterPIDController = new ProfiledPIDController(3.15, 0.0, 0.0, kLifterConstraints);
+                public static final Constraints kLifterConstraints = new Constraints(36, 20);
+                public static final ProfiledPIDController kLifterPIDController = new ProfiledPIDController(2.5, 0.0, 0.0, kLifterConstraints);
 
                 // * Angles
-                public static final Measure<Angle> kShooterAngle = Degrees.of(0);
+                public static final Measure<Angle> kShooterAngle = Degrees.of(-110);
                 public static final Measure<Angle> kAmplifierPrevAngle = Degrees.of(40);
                 public static final Measure<Angle> kAmplifierFinalAngle = Degrees.of(85);
-                public static final Measure<Angle> kGroundAngle = Degrees.of(176);
+                public static final Measure<Angle> kGroundAngle = Degrees.of(65);
             }
         }
     }

@@ -10,7 +10,6 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -22,7 +21,7 @@ public class PhotonOdometryCamera implements OdometryCamera {
     private final PhotonCamera m_camera;
     private final Function<VisionOdometryPoseEstimate, Matrix<N3, N1>> m_stdDevProvider;
     // private final Transform3d m_robotToCamera;
-    private Pose2d m_last_pose;
+    // private Pose2d m_last_pose;
     private boolean m_enabled;
     private double lastTimestamp = -1;
 
@@ -67,8 +66,9 @@ public class PhotonOdometryCamera implements OdometryCamera {
 
     @Override
     public synchronized Optional<VisionOdometryPoseEstimate> getEstimate() {
+        if (!m_camera.isConnected()) return Optional.empty();
         if (!m_enabled) return Optional.empty();
-        m_poseEstimator.setReferencePose(m_last_pose);
+        // m_poseEstimator.setReferencePose(m_last_pose);
         Optional<EstimatedRobotPose> estimatedPose = m_poseEstimator.update();
         if (estimatedPose.isEmpty()) return Optional.empty();
         double avgTargetDist = 0;
@@ -78,7 +78,7 @@ public class PhotonOdometryCamera implements OdometryCamera {
         }
         avgTargetDist /= estimatedPose.get().targetsUsed.size();
         lastTimestamp = estimatedPose.get().timestampSeconds;
-        m_last_pose = estimatedPose.get().estimatedPose.toPose2d();
+        // m_last_pose = estimatedPose.get().estimatedPose.toPose2d();
         VisionOdometryPoseEstimate result = new VisionOdometryPoseEstimate(
             estimatedPose.get().estimatedPose.toPose2d(),
             estimatedPose.get().timestampSeconds,
