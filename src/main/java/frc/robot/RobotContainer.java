@@ -14,10 +14,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.Field;
 import frc.robot.commands.Climbers.Both.BothClimbersDown;
 import frc.robot.commands.Climbers.Both.BothClimbersHome;
 import frc.robot.commands.Climbers.Both.BothClimbersUp;
@@ -123,7 +125,7 @@ public class RobotContainer {
         poseEstimator::getEstimatedPosition,
         poseEstimator::resetPosition,
         m_swerveDrive::getRobotRelativeChassisSpeeds,
-        m_swerveDrive::driveRobotRelative,
+        m_swerveDrive::driveRobotRelative, 
         new HolonomicPathFollowerConfig(
             Constants.SwerveDrive.Autonomous.kTranslatePIDConstants,
             Constants.SwerveDrive.Autonomous.kRotatePIDConstants,
@@ -139,6 +141,10 @@ public class RobotContainer {
     );
 
     this.m_autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData(m_autoChooser);
+    SmartDashboard.putData("poseEstimator/setVisionPose", new InstantCommand(poseEstimator::setvisionPose));
+    // SmartDashboard.putData("poseEstimator/resetPose", new InstantCommand(poseEstimator.));
+    SmartDashboard.putData("SwerveDrive/ResetTurningEncoders", new InstantCommand(m_swerveDrive::resetTurningEncoders));
 
     configureBindings();
   }

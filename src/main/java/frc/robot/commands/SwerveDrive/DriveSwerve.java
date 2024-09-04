@@ -52,7 +52,7 @@ public class DriveSwerve extends Command {
     this.fieldRelative = fieldRelative;
     this.trackingSpeaker = trackingSpeaker;
 
-    // headingController.enableContinuousInput(0, 2 * Math.PI);
+    headingController.enableContinuousInput(0, 2 * Math.PI);
     headingController.setTolerance(Constants.SwerveDrive.kHeadingTolerance.in(Radians));
     SmartDashboard.putData("HeadingController", headingController);
 
@@ -74,11 +74,10 @@ public class DriveSwerve extends Command {
     y = JoystickUtils.applyDeadbband(y, Constants.SwerveDrive.kJoystickDeadband);
     rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
 
+    if (rot == 0) lastHeading = swerveDrive.getHeading().getRadians() % 2 * Math.PI;
     if (rot == 0 && (x !=0 || y != 0)) {
-      rot = headingController.calculate(swerveDrive.getHeading().getRadians(), lastHeading);
+      rot = headingController.calculate(swerveDrive.getHeading().getRadians() % 2 * Math.PI, lastHeading);
       rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
-    } else {
-      lastHeading = swerveDrive.getHeading().getRadians();
     }
     
     x = xLimiter.calculate(x);
