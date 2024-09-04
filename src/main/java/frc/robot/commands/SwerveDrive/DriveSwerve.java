@@ -74,12 +74,12 @@ public class DriveSwerve extends Command {
     y = JoystickUtils.applyDeadbband(y, Constants.SwerveDrive.kJoystickDeadband);
     rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
 
-    // if (rot == 0) {
-    //   rot = headingController.calculate(swerveDrive.getHeading().getRadians(), lastHeading);
-    //   rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
-    // } else {
-    //   lastHeading = swerveDrive.getHeading().getRadians();
-    // }
+    if (rot == 0 && (x !=0 || y != 0)) {
+      rot = headingController.calculate(swerveDrive.getHeading().getRadians(), lastHeading);
+      rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
+    } else {
+      lastHeading = swerveDrive.getHeading().getRadians();
+    }
     
     x = xLimiter.calculate(x);
     y = yLimiter.calculate(y);
