@@ -27,6 +27,7 @@ import frc.robot.Constants.Field;
 import frc.robot.commands.Climbers.Both.BothClimbersDown;
 import frc.robot.commands.Climbers.Both.BothClimbersHome;
 import frc.robot.commands.Climbers.Both.BothClimbersUp;
+import frc.robot.commands.Intake.IntakeIn;
 import frc.robot.commands.Intake.IntakeOut;
 import frc.robot.commands.Intake.LifterAmp;
 import frc.robot.commands.Intake.LifterFloor;
@@ -75,8 +76,8 @@ public class RobotContainer {
     new LimelightOdometryCamera("limelight-three", false, VisionOdometryFilters::noFilter),
     new LimelightOdometryCamera("limelight-twoplus", true, VisionOdometryFilters::limelightFilter),
 
-    new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::noFilter),
-    new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::noFilter)
+    // new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::noFilter),
+    // new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::noFilter)
   };
 
   private final FilteredSwerveDrivePoseEstimator poseEstimator;
@@ -146,6 +147,10 @@ public class RobotContainer {
 
     NamedCommands.registerCommands(new HashMap<String, Command>(){{
       put("PickupPiece", new PickUpPiece(m_intakeRollers, m_intakeLifter));
+      put("LifterFloor", new LifterFloor(m_intakeLifter));
+      put("LifterShooter", new LifterShooter(m_intakeLifter));
+      put("IntakeIn", new IntakeIn(m_intakeRollers));
+      put("IntakeOut", new IntakeOut(m_intakeRollers));
       put("Shoot", new Shoot(m_shooter, m_intakeRollers));
     }});
 
