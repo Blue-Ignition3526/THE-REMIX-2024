@@ -11,6 +11,10 @@ public class VisionOdometryFilters {
         return VecBuilder.fill(0, 0, 0);
     }
 
+    public static Matrix<N3, N1> arducamFilter(VisionOdometryPoseEstimate estimate) {
+        return VecBuilder.fill(0.25, 0.25, 999999999d);
+    }
+
     public static Matrix<N3, N1> limelightFilter(VisionOdometryPoseEstimate estimate) {
         return VecBuilder.fill(0.7, 0.7, 999999999d);
     }

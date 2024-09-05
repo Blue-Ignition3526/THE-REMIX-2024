@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Field;
@@ -71,14 +72,14 @@ public class RobotContainer {
   private final PhotonCamera leftCam = new PhotonCamera("Arducam_Left");
   private final PhotonCamera rightCam = new PhotonCamera("Arducam_Right");
 
-  private final OdometryCamera[] cameras = new OdometryCamera[] {
-    new LimelightOdometryCamera("limelight-threeg", true, VisionOdometryFilters::limelightFilter),
-    new LimelightOdometryCamera("limelight-three", false, VisionOdometryFilters::noFilter),
-    new LimelightOdometryCamera("limelight-twoplus", true, VisionOdometryFilters::limelightFilter),
+  private final LimelightOdometryCamera LL3G = new LimelightOdometryCamera("limelight-threeg", true, VisionOdometryFilters::limelightFilter);
+  private final LimelightOdometryCamera LL3 = new LimelightOdometryCamera("limelight-three", false, VisionOdometryFilters::limelightFilter);
+  private final LimelightOdometryCamera LL2P = new LimelightOdometryCamera("limelight-twoplus", true, VisionOdometryFilters::limelightFilter);
+  
+    private final PhotonOdometryCamera photonLeftCam = new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::arducamFilter);
+  private final PhotonOdometryCamera photonRightCam = new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::arducamFilter);
 
-    // new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::noFilter),
-    // new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::noFilter)
-  };
+  private final OdometryCamera[] cameras = new OdometryCamera[] { LL3G, photonLeftCam, photonRightCam, LL2P, LL3 };
 
   private final FilteredSwerveDrivePoseEstimator poseEstimator;
 
@@ -145,20 +146,30 @@ public class RobotContainer {
         m_swerveDrive
     );
 
-    NamedCommands.registerCommands(new HashMap<String, Command>(){{
-      put("PickupPiece", new PickUpPiece(m_intakeRollers, m_intakeLifter));
-      put("LifterFloor", new LifterFloor(m_intakeLifter));
-      put("LifterShooter", new LifterShooter(m_intakeLifter));
-      put("IntakeIn", new IntakeIn(m_intakeRollers));
-      put("IntakeOut", new IntakeOut(m_intakeRollers));
-      put("Shoot", new Shoot(m_shooter, m_intakeRollers));
-    }});
+    // NamedCommands.registerCommands(new HashMap<String, Command>(){{
+    //   put("PickupPiece", new PickUpPiece(m_intakeRollers, m_intakeLifter));
+    //   put("LifterFloor", new LifterFloor(m_intakeLifter));
+    //   put("LifterShooter", new LifterShooter(m_intakeLifter));
+    //   put("IntakeIn", new IntakeIn(m_intakeRollers));
+    //   put("IntakeOut", new IntakeOut(m_intakeRollers));
+    //   put("Shoot", new Shoot(m_shooter, m_intakeRollers));
+    // }});
+
+    NamedCommands.registerCommand("PickupPiece", new PickUpPiece(m_intakeRollers, m_intakeLifter));
+    NamedCommands.registerCommand("LifterFloor", new LifterFloor(m_intakeLifter));
+    NamedCommands.registerCommand("LifterShooter", new LifterShooter(m_intakeLifter));
+    NamedCommands.registerCommand("IntakeIn", new IntakeIn(m_intakeRollers));
+    NamedCommands.registerCommand("IntakeOut", new IntakeOut(m_intakeRollers));
+    NamedCommands.registerCommand("Shoot", new Shoot(m_shooter, m_intakeRollers));
 
     this.m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("AutoChooser", m_autoChooser);
+
+    // Commands
     SmartDashboard.putData("poseEstimator/setVisionPose", new InstantCommand(poseEstimator::setvisionPose));
-    // SmartDashboard.putData("poseEstimator/resetPose", new InstantCommand(poseEstimator.));
     SmartDashboard.putData("SwerveDrive/ResetTurningEncoders", new InstantCommand(m_swerveDrive::resetTurningEncoders));
+    SmartDashboard.putData("Intake/DisableSwitch", new InstantCommand(() -> m_intakeRollers.setPieceSwitchEnabled(false)));
+    SmartDashboard.putData("Intake/EnableSwitch", new InstantCommand(() -> m_intakeRollers.setPieceSwitchEnabled(true)));
 
     configureBindings();
   }
@@ -199,6 +210,12 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return new SequentialCommandGroup(
+      // Set all Limelight cameras' pipeline to odometry
+      new ParallelCommandGroup(
+        new InstantCommand(() -> LimelightHelpers.setPipelineIndex(LL3G.getCameraName(), Constants.Vision.Limelight3G.kOdometryPipeline)),
+        new InstantCommand(() -> LimelightHelpers.setPipelineIndex(LL2P.getCameraName(), Constants.Vision.LimelightTwoPlus.kOdometryPipeline)),
+        new InstantCommand(() -> LimelightHelpers.setPipelineIndex(LL3.getCameraName(), Constants.Vision.Limelight3.kOdometryPipeline))
+      ),
       new InstantCommand(poseEstimator::setvisionPose),
       m_autoChooser.getSelected()
     );

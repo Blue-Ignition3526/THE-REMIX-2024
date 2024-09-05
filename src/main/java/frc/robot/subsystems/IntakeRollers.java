@@ -14,6 +14,8 @@ public class IntakeRollers extends SubsystemBase {
 
     private boolean isIntaking = false;
 
+    private boolean pieceSwitchEnabled = true;
+
     public IntakeRollers() {
         this.rollersMotor = new LazyCANSparkMax(Constants.Intake.Rollers.kintakeRollersMotorID, MotorType.kBrushless);
         this.pieceSwitch = new DigitalInput(Constants.Intake.Rollers.kPieceSwitchPort);
@@ -32,7 +34,11 @@ public class IntakeRollers extends SubsystemBase {
 
     // * Piece switch
     public boolean hasPiece() {
-        return !this.pieceSwitch.get();
+        return !this.pieceSwitch.get() && pieceSwitchEnabled;
+    }
+
+    public void setPieceSwitchEnabled(boolean enabled) {
+        this.pieceSwitchEnabled = enabled;
     }
 
     // * Speed setters

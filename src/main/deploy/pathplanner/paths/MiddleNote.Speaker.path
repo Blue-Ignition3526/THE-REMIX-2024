@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.5,
-        "y": 5.2
+        "x": 2.6015831638103353,
+        "y": 5.991758387810157
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.014155870887771,
-        "y": 5.215873600441299
+        "x": 2.115739034698106,
+        "y": 6.007631988251456
       },
       "isLocked": false,
       "linkedName": "MiddleNote"
@@ -43,7 +43,7 @@
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Notes.Speaker",
+  "folder": null,
   "previewStartingState": {
     "rotation": 0,
     "velocity": 0
