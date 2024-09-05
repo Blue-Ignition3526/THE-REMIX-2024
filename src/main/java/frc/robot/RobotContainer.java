@@ -3,9 +3,12 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.util.HashMap;
+
 import org.photonvision.PhotonCamera;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 
@@ -18,6 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Field;
 import frc.robot.commands.Climbers.Both.BothClimbersDown;
@@ -67,12 +71,12 @@ public class RobotContainer {
   private final PhotonCamera rightCam = new PhotonCamera("Arducam_Right");
 
   private final OdometryCamera[] cameras = new OdometryCamera[] {
-    new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::noFilter),
-    new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::noFilter),
-
-    new LimelightOdometryCamera("limelight-threeg", true, VisionOdometryFilters::noFilter),
+    new LimelightOdometryCamera("limelight-threeg", true, VisionOdometryFilters::limelightFilter),
     new LimelightOdometryCamera("limelight-three", false, VisionOdometryFilters::noFilter),
-    new LimelightOdometryCamera("limelight-twoplus", true, VisionOdometryFilters::noFilter)
+    new LimelightOdometryCamera("limelight-twoplus", true, VisionOdometryFilters::limelightFilter),
+
+    new PhotonOdometryCamera(leftCam, Constants.Vision.Arducam_Left.kRobotToCamera, true, VisionOdometryFilters::noFilter),
+    new PhotonOdometryCamera(rightCam, Constants.Vision.Arducam_Right.kRobotToCamera, true, VisionOdometryFilters::noFilter)
   };
 
   private final FilteredSwerveDrivePoseEstimator poseEstimator;
@@ -140,8 +144,13 @@ public class RobotContainer {
         m_swerveDrive
     );
 
+    NamedCommands.registerCommands(new HashMap<String, Command>(){{
+      put("PickupPiece", new PickUpPiece(m_intakeRollers, m_intakeLifter));
+      put("Shoot", new Shoot(m_shooter, m_intakeRollers));
+    }});
+
     this.m_autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData(m_autoChooser);
+    SmartDashboard.putData("AutoChooser", m_autoChooser);
     SmartDashboard.putData("poseEstimator/setVisionPose", new InstantCommand(poseEstimator::setvisionPose));
     // SmartDashboard.putData("poseEstimator/resetPose", new InstantCommand(poseEstimator.));
     SmartDashboard.putData("SwerveDrive/ResetTurningEncoders", new InstantCommand(m_swerveDrive::resetTurningEncoders));
@@ -184,7 +193,10 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return m_autoChooser.getSelected();
+    return new SequentialCommandGroup(
+      new InstantCommand(poseEstimator::setvisionPose),
+      m_autoChooser.getSelected()
+    );
   }
 
   public Command getTeleopCommand() {

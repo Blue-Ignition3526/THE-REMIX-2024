@@ -38,8 +38,8 @@ public final class Constants {
         // * Physical model of the robot
         public static final class PhysicalModel {
             // * MAX DISPLACEMENT SPEED (and acceleration)
-            public static Measure<Velocity<Distance>> kMaxSpeed = MetersPerSecond.of(4);
-            public static final Measure<Velocity<Velocity<Distance>>> kMaxAcceleration = MetersPerSecondPerSecond.of(kMaxSpeed.in(MetersPerSecond));
+            public static Measure<Velocity<Distance>> kMaxSpeed = MetersPerSecond.of(4.3);
+            public static final Measure<Velocity<Velocity<Distance>>> kMaxAcceleration = MetersPerSecondPerSecond.of(3);
 
             // * MAX ROTATIONAL SPEED (and acceleration)
             public static final Measure<Velocity<Angle>> kMaxAngularSpeed = RotationsPerSecond.of(1);

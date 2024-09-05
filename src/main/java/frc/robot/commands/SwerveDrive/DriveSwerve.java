@@ -28,14 +28,15 @@ public class DriveSwerve extends Command {
     Constants.SwerveDrive.PhysicalModel.kMaxAngularAcceleration.in(RadiansPerSecond.per(Second)) / 4
   );
   ProfiledPIDController headingController = new ProfiledPIDController(0.05, 0, 0, headingConstraints);
+  
+  double headingSetpoint = 0;
+  boolean setHeading = false;
 
   Supplier<Double> xSpeed;
   Supplier<Double> ySpeed;
   Supplier<Double> rotSpeed;
   Supplier<Boolean> fieldRelative;
   Supplier<Boolean> trackingSpeaker;
-
-  double lastHeading = 0;
   
   public DriveSwerve(
     SwerveDrive swerveDrive,
@@ -74,11 +75,20 @@ public class DriveSwerve extends Command {
     y = JoystickUtils.applyDeadbband(y, Constants.SwerveDrive.kJoystickDeadband);
     rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
 
-    if (rot == 0) lastHeading = swerveDrive.getHeading().getRadians() % 2 * Math.PI;
-    if (rot == 0 && (x !=0 || y != 0)) {
-      rot = headingController.calculate(swerveDrive.getHeading().getRadians() % 2 * Math.PI, lastHeading);
-      rot = JoystickUtils.applyDeadbband(rot, Constants.SwerveDrive.kJoystickDeadband);
-    }
+    // Not rotating
+    //if (rot == 0) {
+    //  if (!setHeading) {
+    //    headingSetpoint = swerveDrive.getHeading().getRadians() % (2 * Math.PI);
+    //    setHeading = true;
+    //  }
+//
+    //  if (setHeading && (x != 0 || y != 0)) rot = headingController.calculate(swerveDrive.getHeading().getRadians(), headingSetpoint);
+    //} else {
+    //  setHeading = false;
+    //}
+
+    //SmartDashboard.putBoolean("setheading", setHeading);
+    //SmartDashboard.putNumber("headingsetpoint", headingSetpoint);
     
     x = xLimiter.calculate(x);
     y = yLimiter.calculate(y);

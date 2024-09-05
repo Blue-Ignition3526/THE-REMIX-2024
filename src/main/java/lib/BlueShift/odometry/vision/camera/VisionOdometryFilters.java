@@ -11,7 +11,7 @@ public class VisionOdometryFilters {
         return VecBuilder.fill(0, 0, 0);
     }
 
-    public Matrix<N3, N1> limelightFilter(VisionOdometryPoseEstimate estimate) {
-        return VecBuilder.fill(7d, 7d, 999999999d);
+    public static Matrix<N3, N1> limelightFilter(VisionOdometryPoseEstimate estimate) {
+        return VecBuilder.fill(0.7, 0.7, 999999999d);
     }
 }

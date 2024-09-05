@@ -80,20 +80,23 @@ public class FilteredSwerveDrivePoseEstimator extends SubsystemBase implements E
   }
 
   public synchronized void setvisionPose() {
-    Pose2d pose = new Pose2d();
-    int camerasWithPose = 0;
-    for (int i = 0; i < cameras.length; i++) {
-      OdometryCamera camera = cameras[i];
-      if (!camera.isEnabled()) continue;
-      // Set the heading of the robot if it is a LimelightOdometryCamera
-      if (camera instanceof LimelightOdometryCamera) ((LimelightOdometryCamera)camera).setHeading(this.getEstimatedHeading().getDegrees());
-      Optional<VisionOdometryPoseEstimate> estimate = camera.getEstimate();
-      if (estimate.isEmpty()) continue;
-      camerasWithPose++;
-      pose = pose.plus(new Transform2d(estimate.get().pose.getTranslation(), estimate.get().pose.getRotation()));
-    }
-    pose = pose.div(camerasWithPose);
-    estimator.resetPosition(headingSupplier.get(), modulePositionsSupplier.get(), pose);
+    // Pose2d pose = new Pose2d();
+    // int camerasWithPose = 0;
+    // for (int i = 0; i < cameras.length; i++) {
+    //   OdometryCamera camera = cameras[i];
+    //   if (!camera.isEnabled()) continue;
+    //   // Set the heading of the robot if it is a LimelightOdometryCamera
+    //   if (camera instanceof LimelightOdometryCamera) ((LimelightOdometryCamera)camera).setHeading(this.getEstimatedHeading().getDegrees());
+    //   Optional<VisionOdometryPoseEstimate> estimate = camera.getEstimate();
+    //   if (estimate.isEmpty()) continue;
+    //   camerasWithPose++;
+    //   pose = pose.plus(new Transform2d(estimate.get().pose.getTranslation(), estimate.get().pose.getRotation()));
+    // }
+    // pose = pose.div(camerasWithPose);
+    // estimator.resetPosition(headingSupplier.get(), modulePositionsSupplier.get(), pose);
+    Optional<VisionOdometryPoseEstimate> estimate = cameras[0].getEstimate();
+    if (estimate.isEmpty()) return;
+    estimator.resetPosition(headingSupplier.get(), modulePositionsSupplier.get(), estimate.get().pose);
   }
 
   public synchronized void update() {
